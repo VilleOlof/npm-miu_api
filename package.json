@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "files": [
-    "lib/**/*"
+    "lib/*"
   ],
   "scripts": {
     "build": "tsc",
@@ -18,6 +18,10 @@
     "marbleitup",
     "game"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VilleOlof/npm-miu_api"
+  },
   "author": "villeolof",
   "license": "ISC",
   "devDependencies": {
