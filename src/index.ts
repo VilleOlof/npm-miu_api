@@ -21,25 +21,25 @@ export enum WeeklyChallengeStatus {
 }
 
 export enum SteamQuery {
-    RankedByVote = "k_EUGCQuery_RankedByVote",
-    RankedByPublicationDate = "k_EUGCQuery_RankedByPublicationDate",
-    AcceptedForGameRankedByAcceptanceDate = "k_EUGCQuery_AcceptedForGameRankedByAcceptanceDate",
-    RankedByTrend = "k_EUGCQuery_RankedByTrend",
-    FavoritedByFriendsRankedByPublicationDate = "k_EUGCQuery_FavoritedByFriendsRankedByPublicationDate",
-    CreatedByFriendsRankedByPublicationDate = "k_EUGCQuery_CreatedByFriendsRankedByPublicationDate",
-    RankedByNumTimesReported = "k_EUGCQuery_RankedByNumTimesReported",
-    CreatedByFollowedUsersRankedByPublicationDate = "k_EUGCQuery_CreatedByFollowedUsersRankedByPublicationDate",
-    NotYetRated = "k_EUGCQuery_NotYetRated",
-    RankedByTotalVotesAsc = "k_EUGCQuery_RankedByTotalVotesAsc",
-    RankedByVotesUp = "k_EUGCQuery_RankedByVotesUp",
-    RankedByTextSearch = "k_EUGCQuery_RankedByTextSearch",
-    RankedByTotalUniqueSubscriptions = "k_EUGCQuery_RankedByTotalUniqueSubscriptions",
-    RankedByPlaytimeTrend = "k_EUGCQuery_RankedByPlaytimeTrend",
-    RankedByTotalPlaytime = "k_EUGCQuery_RankedByTotalPlaytime",
-    RankedByAveragePlaytimeTrend = "k_EUGCQuery_RankedByAveragePlaytimeTrend",
-    RankedByLifetimeAveragePlaytime = "k_EUGCQuery_RankedByLifetimeAveragePlaytime",
-    RankedByPlaytimeSessionsTrend = "k_EUGCQuery_RankedByPlaytimeSessionsTrend",
-    RankedByLifetimePlaytimeSessions = "k_EUGCQuery_RankedByLifetimePlaytimeSessions",
+    RankedByVote = 0,
+    RankedByPublicationDate = 1,
+    AcceptedForGameRankedByAcceptanceDate = 2,
+    RankedByTrend = 3,
+    FavoritedByFriendsRankedByPublicationDate = 4,
+    CreatedByFriendsRankedByPublicationDate = 5,
+    RankedByNumTimesReported = 6,
+    CreatedByFollowedUsersRankedByPublicationDate = 7,
+    NotYetRated = 8,
+    RankedByTotalVotesAsc = 9,
+    RankedByVotesUp = 10,
+    RankedByTextSearch = 11,
+    RankedByTotalUniqueSubscriptions = 12,
+    RankedByPlaytimeTrend = 13,
+    RankedByTotalPlaytime = 14,
+    RankedByAveragePlaytimeTrend = 15,
+    RankedByLifetimeAveragePlaytime = 16,
+    RankedByPlaytimeSessionsTrend = 17,
+    RankedByLifetimePlaytimeSessions = 18,
 }
 
 export enum JSONData {
@@ -60,9 +60,10 @@ export enum JSONData {
 
 enum RequestTemplates {
     ClassicScores = "miu/lb/classic/?level={0}&limit={1}&skip={2}&orderBy={3}&orderByDesc={4}&platform={5}&usernameQuery={6}",
+    ReplayData = "miu/lb/classic/?level={0}&limit={1}&skip={2}&orderby={3}&orderByDesc={4}&platform={5}&replay={6}&usernameQuery={7}&deserializeReplay={8}",
     CustomScores = "steam/lb/?start={0}&end={1}&level={2}",
     JSONData = "miu/data/?jsonData={0}",
-    CustomLevels = "steam/leveldata/?",
+    CustomLevels = "steam/leveldata/?allLevels={0}&newestLevel={1}&levelName={2}&UGCQuery={3}&QueryStart={4}&QueryEnd={5}",
 
     WeeklyScores = "miu/lb/classicWeekly/?status={0}&GetLevelScore={1}&level={2}&platform={3}&limit={4}&skip={5}&orderBy={6}&orderByDesc={7}",
     WeeklyData = "miu/lb/classicWeekly/?status={0}&GetScores={1}",
@@ -75,12 +76,31 @@ function FormatString(str: string, ...val: string[]) {
     return str;
 }
 
-function ValidateResponse(response: any): any {
+function ValidateResponse(response: any, URL: string): any {
     if (response.status != 200) {
-        throw new Error(`Request failed with status code ${response.status}`);
+        throw new Error(`Request failed with status code ${response.status}: ${URL}`);
     }
 
     return response;
+}
+
+function ParseReplayJSON(replayJSONState: any): Replay.State[] {
+    var replay: Replay.State[] = [];
+
+    for (var i = 0; i < replayJSONState.length; i++) {
+        var currentState: any = replayJSONState[i];
+
+        var position: Vector3 = new Vector3(currentState.position[0], currentState.position[1], currentState.position[2]);
+        var velocity: Vector3 = new Vector3(currentState.velocity[0], currentState.velocity[1], currentState.velocity[2]);
+        var omega: Vector3 = new Vector3(currentState.omega[0], currentState.omega[1], currentState.omega[2]);
+        var timeIndex: number = currentState.timeIndex;
+
+        var replayState: Replay.State = new Replay.State(position, velocity, omega, timeIndex);
+
+        replay.push(replayState);
+    }
+
+    return replay;
 }
 
 /**
@@ -182,6 +202,27 @@ export class CustomLevel {
         this.workshopURL = workshopURL;
     }
 }
+
+export class WeeklyChallengeData {
+    public status: WeeklyChallengeStatus;
+    public physicsmod: string[];
+    public levels: string[];
+    public title: string;
+    public dateRange_Start: string;
+    public dateRange_End: string;
+    public timeUntilNext: string;
+
+    constructor(status: WeeklyChallengeStatus, physicsmod: string[], levels: string[], title: string, dateRange_Start: string, dateRange_End: string, timeUntilNext: string) {
+        this.status = status;
+        this.physicsmod = physicsmod;
+        this.levels = levels;
+        this.title = title;
+        this.dateRange_Start = dateRange_Start;
+        this.dateRange_End = dateRange_End;
+        this.timeUntilNext = timeUntilNext;
+    }
+}
+
 /**
  * A class containing all the data for a replay
  * @param states The states of the replay
@@ -194,12 +235,12 @@ export class CustomLevel {
  */
 export class Replay {
     static State = class {
-        public position: number[];
-        public velocity: number[];
-        public omega: number[];
+        public position: Vector3;
+        public velocity: Vector3;
+        public omega: Vector3;
         public timeIndex: number;
 
-        constructor(position: number[], velocity: number[], omega: number[], timeIndex: number) {
+        constructor(position: Vector3, velocity: Vector3, omega: Vector3, timeIndex: number) {
             this.position = position;
             this.velocity = velocity;
             this.omega = omega;
@@ -211,6 +252,18 @@ export class Replay {
 
     constructor(states: Replay.State[]) {
         this.states = states;
+    }
+}
+
+export class Vector3 {
+    public X: number = 0;
+    public Y: number = 0;
+    public Z: number = 0;
+
+    constructor(x: number, y: number, z: number) {
+        this.X = x;
+        this.Y = y;
+        this.Z = z;
     }
 }
 
@@ -253,9 +306,9 @@ class miuapi {
                 level, limit.toString(), skip.toString(), orderby, orderByDescending.toString(), platform, "false");
 
             const response: any = await fetch(URL);
-            const data: any = await ValidateResponse(response).json();
+            const data: any = await ValidateResponse(response, URL).json();
 
-            const scores = JSON.parse(data.scores);
+            const scores: ClassicScore[] = JSON.parse(data.scores);
 
             return scores;
         }
@@ -293,9 +346,9 @@ class miuapi {
             );
             
             const response: any = await fetch(URL);
-            const data: any = await ValidateResponse(response).json()
+            const data: any = await ValidateResponse(response, URL).json()
 
-            const scores = JSON.parse(data.scores);
+            const scores: ClassicScore[] = JSON.parse(data.scores);
 
             return scores;
         }
@@ -309,8 +362,40 @@ class miuapi {
          * const scores: ClassicScore[] = await miuapi.Classic.FetchWeeklyScores();
          * ```
          */
-        public static async FetchWeeklyChallengeScores(): Promise<ClassicScore[]> {
-            throw new Error("Not implemented");
+        public static async FetchWeeklyChallengeScores(
+            status: WeeklyChallengeStatus,
+            level: string,
+            limit: number,
+            skip: number = 0,
+            platform: Platform = Platform.Global,
+            orderby: ClassicOrderBy = ClassicOrderBy.Time,
+            orderByDescending: boolean = false,
+        ): Promise<ClassicScore[]> {
+            
+            const URL: string = FormatString(miuapi._URL + RequestTemplates.WeeklyScores,
+                status,
+                "true",
+                level.replace(" ", "%20"),
+                platform,
+                limit.toString(),
+                skip.toString(),
+                orderby,
+                orderByDescending.toString()
+            );
+
+            const response: any = await fetch(URL);
+            const data: any = await ValidateResponse(response, URL).json();
+
+            var scores: ClassicScore[] = JSON.parse(data.scores);
+
+            // Ensures the level name is correct, otherwise they would be like "A0"
+            const weeklyLevels = JSON.parse(data.levels);
+
+            scores.forEach((score: ClassicScore) => {
+                score.level = weeklyLevels[score.level.substring(1, score.level.length)];
+            });
+
+            return scores;
         }
 
         /**
@@ -324,7 +409,24 @@ class miuapi {
          * ```
          */
         public static async FetchWeeklyChallengeData(status: WeeklyChallengeStatus): Promise<any> {
-            throw new Error("Not implemented");
+            
+            const URL: string = FormatString(miuapi._URL + RequestTemplates.WeeklyData, status, "false");
+
+            const response: any = await fetch(URL);
+            const data: any = await ValidateResponse(response, URL).json();
+
+            //Bit of a weird way to parse the data, but it works
+            var weeklyData: WeeklyChallengeData = new WeeklyChallengeData(
+                data.status,
+                JSON.parse(data.physicsmod),
+                JSON.parse(data.levels),
+                data.title,
+                JSON.parse(data.dateRange_Start),
+                JSON.parse(data.dateRange_End),
+                JSON.parse(data.timeUntilNext)
+            );
+
+            return weeklyData;
         }
 
         /**
@@ -352,7 +454,32 @@ class miuapi {
             orderby: ClassicOrderBy = ClassicOrderBy.Time,
             orderByDescending: boolean = false,
         ): Promise<Replay[]> {
-            throw new Error("Not implemented");
+            
+            const template: string = "miu/lb/classic/?level={0}&limit={1}&skip={2}&orderby={3}&orderByDesc={4}&platform={5}&replay={6}&usernameQuery={7}&deserializeReplay={8}";
+            const URL: string = FormatString(miuapi._URL + template,
+                level,
+                limit.toString(),
+                skip.toString(),
+                orderby,
+                orderByDescending.toString(),
+                platform,
+                "true",
+                "false",
+                "true"
+            );
+
+            const response: any = await fetch(URL);
+            const data: any = await ValidateResponse(response, URL).json();
+
+            const replays: Replay[] = [];
+
+            JSON.parse(data.replays).forEach((state: any, index: number) => {
+                replays[index] = new Replay(Array<Replay.State>());
+                var states: Replay.State[] = ParseReplayJSON(state.States);
+                replays[index].states = states;
+            });
+
+            return replays;
         }
 
         /**
@@ -368,10 +495,9 @@ class miuapi {
         public static async FetchJSONData(type: JSONData): Promise<any> {
             
             const URL: string = FormatString(miuapi._URL + RequestTemplates.JSONData, type.toString());
-            console.log(URL);
 
             const response: any = await fetch(URL);
-            const data: any = await ValidateResponse(response).text();
+            const data: any = await ValidateResponse(response, URL).text();
 
             return JSON.parse(data);
         }
@@ -402,28 +528,6 @@ class miuapi {
         }
 
         /**
-         * Fetches replay data from the steam leaderboards
-         * @param level The level to fetch replay data from
-         * @param limit The amount of replays to fetch
-         * @param skip The amount of replays to skip starting from 0
-         * @returns An array of replays
-         * 
-         * @example
-         * ```typescript
-         * const replays: Replay[] = await miuapi.Steam.FetchReplays("Azure Athletics", 10, 0);
-         * 
-         * const replays: Replay[] = await miuapi.Steam.FetchReplays("Azure Athletics", 10);
-         * ```
-         */
-        public static async FetchReplays(
-            level: string,
-            limit: number,
-            skip: number = 0,
-        ): Promise<Replay[]> {
-            throw new Error("Not implemented");
-        }
-
-        /**
          * Fetches a specific custom level via its name
          * @param level The name of the level to fetch
          * @returns The level
@@ -436,7 +540,17 @@ class miuapi {
         public static async FetchCustomLevelByName(
             level: string,
         ): Promise<CustomLevel> {
-            throw new Error("Not implemented");
+            
+            const URL: string = FormatString(miuapi._URL + RequestTemplates.CustomLevels,
+                "false", "false", level.replace(" ", "%20"), SteamQuery.RankedByTextSearch.toString(), "0", "1"
+            );
+
+            const response: any = await fetch(URL);
+            const data: any = await ValidateResponse(response, URL).json();
+
+            var customLevel: CustomLevel = JSON.parse(data.levels);
+
+            return customLevel;
         }
 
         /**
@@ -455,8 +569,19 @@ class miuapi {
             query: SteamQuery,
             start: number,
             end: number,
+            optionalText: string = "",
         ): Promise<CustomLevel[]> {
-            throw new Error("Not implemented");
+
+            const URL: string = FormatString(miuapi._URL + RequestTemplates.CustomLevels,
+                "false", "false", optionalText, query.toString(), start.toString(), end.toString()
+            );
+
+            const response: any = await fetch(URL);
+            const data: any = await ValidateResponse(response, URL).json();
+
+            var customLevel: CustomLevel[] = JSON.parse(data.levels);
+
+            return customLevel;
         }
 
         /**
@@ -469,7 +594,17 @@ class miuapi {
          * ```
          */
         public static async FetchAllCustomLevels(): Promise<string[]> {
-            throw new Error("Not implemented");
+
+            const URL: string = FormatString(miuapi._URL + RequestTemplates.CustomLevels,
+                "true", "false", "", "0", "0", "1"
+            );
+
+            const response: any = await fetch(URL);
+            const data: any = await ValidateResponse(response, URL).json();
+
+            var customLevels: string[] = JSON.parse(data.levels);
+
+            return customLevels;
         }
 
         /**
@@ -482,7 +617,17 @@ class miuapi {
          * ```
          */
         public static async FetchNewestCustomLevel(): Promise<CustomLevel> {
-            throw new Error("Not implemented");
+            
+            const URL: string = FormatString(miuapi._URL + RequestTemplates.CustomLevels,
+                "false", "true", "", "0", "0", "1"
+            );
+
+            const response: any = await fetch(URL);
+            const data: any = await ValidateResponse(response, URL).json();
+
+            var customLevel: CustomLevel = JSON.parse(data.levels);
+
+            return customLevel;
         }
     }
 }
