@@ -1,6 +1,6 @@
 {
   "name": "miu-api",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A package for connecting to an api that can fetch scores/data related to Marble It Up!",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
