@@ -43,19 +43,19 @@ export enum SteamQuery {
 }
 
 export enum JSONData {
-    classicLevelOrder,
-    classicLevels,
-    customSkins,
-    diamondTimes,
-    goldTimes,
-    levelAuthor,
-    mayhemLevelorder,
-    mayhemLevels,
-    mayhemSkins,
-    silverTimes,
-    SteamEstimatedPlayCount,
-    ultimateTimes,
-    weeklyModifiers
+    classicLevelOrder = "classicLevelOrder",
+    classicLevels = "classicLevels",
+    customSkins = "customSkins",
+    diamondTimes = "diamondTimes",
+    goldTimes = "goldTimes",
+    levelAuthor = "levelAuthor",
+    mayhemLevelorder = "mayhemLevelorder",
+    mayhemLevels = "mayhemLevels",
+    mayhemSkins = "mayhemSkins",
+    silverTimes = "silverTimes",
+    SteamEstimatedPlayCount = "SteamEstimatedPlayCount",
+    ultimateTimes = "ultimateTimes",
+    weeklyModifiers = "weeklyModifiers",
 }
 
 enum RequestTemplates {
@@ -79,11 +79,8 @@ function ValidateResponse(response: any): any {
     if (response.status != 200) {
         throw new Error(`Request failed with status code ${response.status}`);
     }
-    else if (response.data.error) {
-        throw new Error(`Request failed with error: ${response.data.error}`);
-    }
 
-    return response.data;
+    return response;
 }
 
 /**
@@ -253,16 +250,12 @@ class miuapi {
             ): Promise<ClassicScore[]> {
             
             const URL: string = FormatString(miuapi._URL + RequestTemplates.ClassicScores,
-                level, limit.toString(), skip.toString(), orderby, orderByDescending.toString(), platform);
-
-            console.log(URL);
+                level, limit.toString(), skip.toString(), orderby, orderByDescending.toString(), platform, "false");
 
             const response: any = await fetch(URL);
             const data: any = await ValidateResponse(response).json();
 
-            const scores: ClassicScore[] = [];
-
-            console.log(data);
+            const scores = JSON.parse(data.scores);
 
             return scores;
         }
@@ -302,9 +295,7 @@ class miuapi {
             const response: any = await fetch(URL);
             const data: any = await ValidateResponse(response).json()
 
-            const scores: ClassicScore[] = [];
-
-            console.log(data);
+            const scores = JSON.parse(data.scores);
 
             return scores;
         }
@@ -375,7 +366,14 @@ class miuapi {
          * ```
          */
         public static async FetchJSONData(type: JSONData): Promise<any> {
-            throw new Error("Not implemented");
+            
+            const URL: string = FormatString(miuapi._URL + RequestTemplates.JSONData, type.toString());
+            console.log(URL);
+
+            const response: any = await fetch(URL);
+            const data: any = await ValidateResponse(response).text();
+
+            return JSON.parse(data);
         }
     }
 
