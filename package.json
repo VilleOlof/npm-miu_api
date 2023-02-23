@@ -1,0 +1,17 @@
+{
+  "name": "miu-api",
+  "version": "1.0.0",
+  "description": "A package for connecting to an api that can fetch scores/data related to Marble It Up!",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "api",
+    "miu",
+    "marbleitup",
+    "game"
+  ],
+  "author": "villeolof",
+  "license": "ISC"
+}
