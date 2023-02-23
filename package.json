@@ -2,9 +2,12 @@
   "name": "miu-api",
   "version": "1.0.0",
   "description": "A package for connecting to an api that can fetch scores/data related to Marble It Up!",
-  "main": "index.js",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": ["lib/**/*"],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "prepare": "npm run build"
   },
   "keywords": [
     "api",
@@ -13,5 +16,8 @@
     "game"
   ],
   "author": "villeolof",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^4.9.5"
+  }
 }
