@@ -4,6 +4,28 @@ export enum Platform {
     Switch = "Switch",
 }
 
+export enum SteamQuery {
+    RankedByVote = "k_EUGCQuery_RankedByVote",
+    RankedByPublicationDate = "k_EUGCQuery_RankedByPublicationDate",
+    AcceptedForGameRankedByAcceptanceDate = "k_EUGCQuery_AcceptedForGameRankedByAcceptanceDate",
+    RankedByTrend = "k_EUGCQuery_RankedByTrend",
+    FavoritedByFriendsRankedByPublicationDate = "k_EUGCQuery_FavoritedByFriendsRankedByPublicationDate",
+    CreatedByFriendsRankedByPublicationDate = "k_EUGCQuery_CreatedByFriendsRankedByPublicationDate",
+    RankedByNumTimesReported = "k_EUGCQuery_RankedByNumTimesReported",
+    CreatedByFollowedUsersRankedByPublicationDate = "k_EUGCQuery_CreatedByFollowedUsersRankedByPublicationDate",
+    NotYetRated = "k_EUGCQuery_NotYetRated",
+    RankedByTotalVotesAsc = "k_EUGCQuery_RankedByTotalVotesAsc",
+    RankedByVotesUp = "k_EUGCQuery_RankedByVotesUp",
+    RankedByTextSearch = "k_EUGCQuery_RankedByTextSearch",
+    RankedByTotalUniqueSubscriptions = "k_EUGCQuery_RankedByTotalUniqueSubscriptions",
+    RankedByPlaytimeTrend = "k_EUGCQuery_RankedByPlaytimeTrend",
+    RankedByTotalPlaytime = "k_EUGCQuery_RankedByTotalPlaytime",
+    RankedByAveragePlaytimeTrend = "k_EUGCQuery_RankedByAveragePlaytimeTrend",
+    RankedByLifetimeAveragePlaytime = "k_EUGCQuery_RankedByLifetimeAveragePlaytime",
+    RankedByPlaytimeSessionsTrend = "k_EUGCQuery_RankedByPlaytimeSessionsTrend",
+    RankedByLifetimePlaytimeSessions = "k_EUGCQuery_RankedByLifetimePlaytimeSessions",
+}
+
 export class ClassicScore {
     public username: string;
     public time: number;
@@ -74,19 +96,64 @@ export class CustomLevel {
     }
 }
 
+export class Replay {
+    static State = class {
+        public position: number[];
+        public velocity: number[];
+        public omega: number[];
+        public timeIndex: number;
+
+        constructor(position: number[], velocity: number[], omega: number[], timeIndex: number) {
+            this.position = position;
+            this.velocity = velocity;
+            this.omega = omega;
+            this.timeIndex = timeIndex;
+        }
+    }
+
+    public states: Replay.State[];
+
+    constructor(states: Replay.State[]) {
+        this.states = states;
+    }
+}
+
 class miuapi {
     
     static Classic = class  {
 
-
         public static async FetchScores(): Promise<ClassicScore[]> {
+            throw new Error("Not implemented");
+        }
+
+        public static async FetchUsernameScores(): Promise<ClassicScore[]> {
+            throw new Error("Not implemented");
+        }
+
+        public static async FetchJSONData(): Promise<any> {
             throw new Error("Not implemented");
         }
     }
 
     static Steam = class {
+        
+        public static async FetchScores(): Promise<CustomScore[]> {
+            throw new Error("Not implemented");
+        }
 
+        public static async FetchCustomLevels(): Promise<CustomLevel[]> {
+            throw new Error("Not implemented");
+        }
     }
+}
+
+declare namespace miuapi {
+    type Classic = typeof miuapi.Classic.prototype;
+    type Steam = typeof miuapi.Steam.prototype;
+}
+
+declare namespace Replay {
+    type State = typeof Replay.State.prototype;
 }
 
 export default miuapi;
